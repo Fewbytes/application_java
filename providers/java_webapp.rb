@@ -35,6 +35,7 @@ action :before_deploy do
 end
 
 action :before_migrate do
+  extract
 end
 
 action :before_symlink do
@@ -47,6 +48,15 @@ action :after_restart do
 end
 
 protected
+
+def extract
+  base_path = "#{new_resource.path}/releases/#{new_resource.application.revision}"
+  execute "unzip \"#{base_path}}\".war -d \"#{base_path}\"" do
+    umask "0022"
+    owner new_resource.owner
+    group new_resource.group
+  end 
+end
 
 def create_hierarchy
   directory "#{new_resource.path}/releases" do
@@ -68,6 +78,11 @@ end
 
 def create_context_file
   host = new_resource.find_database_server(new_resource.database_master_role)
+  war_path = if new_resource.extract 
+               "#{new_resource.path}/releases/#{new_resource.application.revision}"
+             else
+               "#{new_resource.path}/releases/#{new_resource.application.revision}.war"
+             end
 
   template "#{new_resource.path}/shared/#{new_resource.application.name}.xml" do
     source new_resource.context_template || "context.xml.erb"
@@ -80,7 +95,7 @@ def create_context_file
       :app => new_resource.application.name,
       :host => host,
       :database => new_resource.database,
-      :war => "#{new_resource.path}/releases/#{new_resource.application.revision}.war"
+      :war => war_path
     )
   end
 end
