@@ -22,7 +22,6 @@ require 'chef/resource/remote_file'
 class Chef
   class Resource
     class JavaRemoteFile < Chef::Resource::RemoteFile
-
       alias :user :owner
       alias :revision :checksum
       alias :repository :source
@@ -32,6 +31,7 @@ class Chef
         @resource_name = :java_remote_file
         @provider = Chef::Provider::JavaRemoteFile
         @deploy_to = nil
+        @allowed_actions.push(:deploy, :force_deploy)
       end
 
       def provider

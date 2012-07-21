@@ -37,10 +37,12 @@ action :before_deploy do
 
   # remove ROOT application
   # TODO create a LWRP to enable/disable tomcat apps
-  directory "#{node['tomcat']['webapp_dir']}/ROOT" do
-    recursive true
-    action :delete
-    not_if "test -L #{node['tomcat']['context_dir']}/ROOT.xml"
+  if new_resource.path == "/" or new_resource == "ROOT"
+    directory "#{node['tomcat']['webapp_dir']}/ROOT" do
+      recursive true
+      action :delete
+      not_if "test -L #{node['tomcat']['context_dir']}/ROOT.xml"
+    end
   end
 
 end
@@ -50,7 +52,9 @@ end
 
 action :before_symlink do
 
-  link "#{node['tomcat']['context_dir']}/ROOT.xml" do
+  path = new_resource.path == "/" ? "ROOT" : new_resource.pathnew_resource.path
+
+  link "#{node['tomcat']['context_dir']}/#{path}.xml" do
     to "#{new_resource.application.path}/shared/#{new_resource.application.name}.xml"
     notifies :restart, resources(:service => "tomcat")
   end

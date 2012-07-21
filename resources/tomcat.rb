@@ -18,3 +18,4 @@
 #
 
 include Chef::Resource::ApplicationBase
+attribute :path, :default => "ROOT"
